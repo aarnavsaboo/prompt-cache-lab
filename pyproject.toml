@@ -5,10 +5,17 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "prompt-cache-lab"
 version = "0.1.0"
+description = "Controlled experiment tooling for repeated-prefix behavior in language-model runtimes."
+readme = "README.md"
 requires-python = ">=3.10"
+authors = [{name = "Aarnav Saboo"}]
+keywords = ["llm", "prompt-cache", "inference", "latency", "benchmarking"]
 
 [project.scripts]
 prompt-cache-lab = "prompt_cache_lab.__main__:main"
+
+[project.urls]
+Repository = "https://github.com/aarnavsaboo/prompt-cache-lab"
 
 [tool.setuptools.packages.find]
 include = ["prompt_cache_lab*"]
