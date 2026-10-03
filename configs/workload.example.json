@@ -1,0 +1,7 @@
+{
+  "modes": ["stable", "mutated", "alternating"],
+  "prefix_chars": [2000, 8000, 32000],
+  "suffix_chars": [128, 512],
+  "output_tokens": [32, 128],
+  "requests_per_cell": 5
+}

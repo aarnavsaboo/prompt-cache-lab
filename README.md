@@ -1,24 +1,67 @@
 # prompt-cache-lab
 
-Experiments around repeated prompt prefixes and warm local inference.
+Local inference experiments for workloads that repeatedly reuse large prompt prefixes.
 
-Many local workloads reuse a large system prompt, document preamble or instruction block across requests. This lab builds paired trials where the shared prefix is held constant, slightly modified or completely replaced, then records latency and generation metadata from a local runtime.
+A lot of practical LLM traffic is structurally repetitive: the same instructions, document collection, schema description or long reference block is sent with a relatively small request-specific suffix. This repository builds repeatable experiments around that pattern and records enough timing information to compare stable prefixes, slightly changed prefixes and completely different prefixes.
 
-The project is deliberately runtime-agnostic at the analysis layer. An Ollama adapter is included for convenient local experiments.
+The project does not assume a runtime implements any specific cache. It treats the backend as a black box and measures observable behaviour.
 
-## Trial shapes
+## Experiment dimensions
 
-- identical long prefix + changing suffix
-- one-character prefix mutation
-- prefix length sweep
-- cold model vs warm model
-- repeated conversation preamble
-- alternating between two large prefixes
+- shared prefix length
+- request-specific suffix length
+- identical vs mutated prefixes
+- alternating prefix families
+- cold vs warm model state
+- output token budget
+- sequential vs concurrent requests
+- model/runtime combination
+- repeated conversations with growing history
 
-```bash
-python -m prompt_cache_lab make --prefix-chars 16000 --requests 20 > trial.jsonl
+## Workflow
+
+```text
+experiment.json
+      |
+      v
+trial generator
+      |
+      +--> stable prefix
+      +--> one-character mutation
+      +--> alternating prefixes
+      +--> growing conversation
+      |
+      v
+bounded runner --> local runtime
+      |
+      v
+raw request JSONL
+      |
+      +--> latency grouping
+      +--> prefix-family comparison
+      +--> warmup curves
+      +--> prompt-length curves
 ```
 
-The aim is to observe reuse behaviour and latency curves, not to assume a backend implements a particular cache strategy.
+## Example
+
+```bash
+python -m prompt_cache_lab plan configs/workload.example.json > runs/plan.jsonl
+python -m prompt_cache_lab execute runs/plan.jsonl --model qwen3:4b --out runs/raw.jsonl
+python -m prompt_cache_lab report runs/raw.jsonl
+```
+
+The raw data is more important than a single summary number. A faster second request can come from model loading, filesystem effects or runtime warmup even when no reusable prompt state exists.
+
+## Repository layout
+
+- `trials.py` — deterministic prompt families
+- `planner.py` — experiment matrix generation
+- `runner.py` — local request execution
+- `analysis.py` — grouped latency and warmup summaries
+- `conversation.py` — controlled history growth
+- `configs/` — workload manifests
+- `docs/` — experiment design and interpretation notes
+- `tests/` — deterministic generation and analysis tests
 
 Maintained by **Aarnav Saboo**.
